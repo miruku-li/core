@@ -1,7 +1,6 @@
 import HyperHTMLElement from "/vendor/hyperhtmlelement.js"
 import merge from "/vendor/mergerino.js"
 
-// hocked up
 export default class extends HyperHTMLElement {
 
 	constructor(props) {
