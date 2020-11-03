@@ -1,25 +1,24 @@
 import HyperHTMLElement from "/vendor/hyperhtmlelement.js"
 import merge from "/vendor/mergerino.js"
 
+const {log} = console
+
 export default class extends HyperHTMLElement {
 
 	constructor(props) {
 		super().attachShadow({mode: 'open'})
-		Object.assign(this, props) // FIXME use crelt aproach
+		this.props = Object(props)
 	}
 
 	// @override alway together !
 	set state(value) { this.change(value, { mode: 'override', render: false , notify: false }) }
-	get state() { return this._state$ || (this.state = this.defaultState); }
+	get state() {	return this._state$ ?? this.defaultState }
 
 	// @override
-	setState(state, render) {
-		this.change(state, { mode: 'shallow', render, notify: false})
-	}
+	setState(state, render) { this.change(state, { mode: 'shallow', render, notify: false}) }
 
 	change(payload, options) {
-		const {subject, verb, mode = 'merge', render, notify,  } = Object(options)
-		console.log(subject, verb, mode, render, notify)
+		const {who, what, mode = 'merge', render, notify} = Object(options)
 		if (mode=='shallow') {
 			payload = typeof payload === 'function' ? payload.call(this, this.state) : payload;
 			Object.assign(this.state, payload)
@@ -29,8 +28,11 @@ export default class extends HyperHTMLElement {
 					value: mode=='override' ? payload : merge(this.state, payload)
 			});
 		}
-		if (render!==false) this.render()
+		if (render !== false) {
+			console.log('render')
+			this.render()
+		}
 		if (notify!==false) this.dispatchEvent(new CustomEvent('change', {
-			detail: {subject, verb, mode, render, notify}, bubble: true}))
+			detail: {who, what, when: Date.now(), payload,mode, render, notify}, bubble: true}))
 	}
 }
