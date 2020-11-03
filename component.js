@@ -8,10 +8,11 @@ export default class extends HyperHTMLElement {
 		Object.assign(this, props)
 	}
 
-	patch(payload, render, notify) {
-		const newState = merge(this.state, payload)
-		this.state = newState;
-		if (render!=false) this.render();
-		if (render!=false) this.dispatchEvent(new CustomEvent('change', {detail: newState}))
+	patch(payload, options) {
+		const {detail, render, notify} = Object(options)
+		//console.log('patch', payload, options)
+		this.state = merge(this.state, payload)
+		if (render!==false) this.render()
+		if (notify!==false) this.dispatchEvent(new CustomEvent('change', {detail, bubble: true}))
 	}
 }
