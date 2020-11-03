@@ -1,13 +1,14 @@
 import HyperHTMLElement from "/vendor/hyperhtmlelement.js"
 import merge from "/vendor/mergerino.js"
 
+// hocked up
 export default class extends HyperHTMLElement {
-	
+
 	constructor(props) {
 		super().attachShadow({mode: 'open'})
-		Object.assign(this, props)  
+		Object.assign(this, props)
 	}
-	
+
 	patch(payload, render, notify) {
 		const newState = merge(this.state, payload)
 		this.state = newState;
