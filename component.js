@@ -5,9 +5,8 @@ const {log} = console
 
 export default class extends HyperHTMLElement {
 
-	constructor(props) {
+	constructor() {
 		super().attachShadow({mode: 'open'})
-		this.props = Object(props)
 	}
 
 	// @override alway together !
