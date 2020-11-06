@@ -22,13 +22,14 @@ async function process() { // #[cmd:]element?data
   if (state.name != name) { // init new component
     state.name = name
     document.body.innerHTML = '<div id="host"></div><hr><pre id="insp"></pre>'
-    document.body.style='display flex; flex-direction: column';
+    host.style.display ='flex';
+    host.style.flexDirection='column';
     if (name.match(/^[a-z-]{1,}$/)) {
-      log('new tag');
+      state.elt = document.createElement(name)
+      log('stdt element')
     } else {
       const module = await import(name)
       state.elt = new(module.default)()
-
     }
     state.elt.value = value
     state.elt.oninput = oninput;
