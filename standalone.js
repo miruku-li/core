@@ -1,91 +1,62 @@
 import {encode, decode} from '/vendor/lzstring.js'
 
-const {log} = console
+const {log, info, assert, warn, error, clear} = console; clear()
 
-let state = {}, debounce
-function oninput ({target}) {
-  const {value} = target
-  insp.innerHTML = JSON.stringify(value, null, '  ')
-  clearTimeout(debounce)
-  debounce = setTimeout( () => {
-    window.location.hash = `${state.name}<${encode(value)}`
-  }, 600)
+const model = {}, runtime = {}
+
+function process () {
+  let hash, data
+  hash = window.location.hash.trim().slice(1)
+  if (!hash) return error('FIXME empty hash')
+  if (hash.match(/^[a-z]*$/i)) return setHash({t: hash})
+  data = decode(hash.slice(2))
+  if (data == null) return error('FIXME invalid hash')
+  if (data.t) {
+    if (!runtime.elem || model.t != data.t) {
+      runtime.elem = document.createElement(model.t = data.t)
+      runtime.elem.oninput = oninput;
+      setValueOf(data)
+      mount(slot, runtime.elem)
+      return
+    } else if (!deepEqual(model.v, data.v)) {
+      return setValueOf(data)
+    } return
+  } else if (data.src) {
+
+  } error('FIXME no tag or src')
 }
 
-async function process() { // #[cmd:]element?data
-  let fragment = window.location.hash.slice(1)
-  let [name, value] = decodeURIComponent(fragment).split('<', 2)
-  name = name.trim().toLowerCase()
-  if (name.length<1) return
-  value = decode(value) ?? undefined  // null turns into undefined
-  // log('process', {name, value})
-  if (state.name != name) { // init new component
-    state.name = name
-    document.body.innerHTML = '<div id="host"></div><hr><pre id="insp"></pre>'
-    host.style.display ='flex';
-    host.style.flexDirection='column';
-    if (name.match(/^[a-z-]{1,}$/)) {
-      state.elt = document.createElement(name)
-      log('stdt element')
-    } else {
-      const module = await import(name)
-      state.elt = new(module.default)()
-    }
-    state.elt.value = value
-    state.elt.oninput = oninput;
-    host.appendChild(state.elt)
-    insp.innerHTML = JSON.stringify(value,null, '  ')
-    log(name)
-    window.location.hash = `${name}<${encode(value)}`
+let debounceOnInput
+function oninput () {
+  model.v = runtime.elem.value
+  inspect.innerHTML = JSON.stringify(model, null, '  ')
+  clearTimeout(debounceOnInput)
+  debounceOnInput = setTimeout(()=> {
+    setHash(model)
+  }, 666)
+}
+function setHash(data) {
+  info('sa-sethash', data)
+  window.location.hash = '0='+encode(data)
+}
+function setValueOf(data) {
+  if(data.v==undefined) {
+    delete model.v
+    runtime.elem.value = runtime.elem.defaultValue
   } else {
-    log('stay', name, value)
-  }
+    runtime.elem.value = model.v = data.v
+  } inspect.innerHTML = JSON.stringify(data, null, '  ')
+}
+function deepEqual(a, b) {
+  return JSON.stringify(a)==JSON.stringify(b)
+}
+function mount(tar, elem) {
+  tar.firstChild ? tar.replaceChild(elem, tar.firstChild) : tar.appendChild(elem)
 }
 
-window.addEventListener('hashchange', process)
-process()
-
-/*import m from '/vendor/mithril.js'
-import s from '/vendor/stream.js'
-import b from '/vendor/bss.js'
-import {encode, decode} from '/vendor/lzstring.js'
-
-const stringify = (a, b = null, c='  ') => JSON.stringify(a,b,c)
-
-let serial = window.location.hash.slice(1), data = decode(serial)
-
-let debounce
-
-function updateHash() {
-	clearTimeout(debounce)
-	debounce = setTimeout(() => window.location.hash = '#'+ (serial = encode(data)), 600)
+window.onload = ()=> {
+  document.body.innerHTML = '<div id="slot"></div><pre id="inspect"></pre>'
+  process()
 }
 
-function setValue(value) {
-	value = typeof value == 'string' ? value
-		: typeof value?.value == 'string' ? value.value : ''
-	data = {... (typeof data == 'object' ? data : {}), value}
-	updateHash()
-}
-
-
-
-window.addEventListener('hashchange', ({target}) => {
-	let newSerial = target.location.hash.slice(1)
-	if (serial == newSerial)) return
-	data = decode(serial)
-	m.redraw()
-}, {capture: true})
-
-const index = {
-	view: ({attrs}) => m('div'+b`d flex; fd column`,
-
-		m('textarea'+b`height 10em`, {
-			oninput: ({target}) => setValue(target),
-			value: data?.value ?? data ?? '',
-		}),
-		m('pre', stringify(data))
-	)
-}
-
-m.mount(document.body, index)*/
+window.onhashchange = process
