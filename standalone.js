@@ -1,51 +1,60 @@
 import {encode, decode} from '/vendor/lzstring.js'
 
-const {log, info, assert, warn, error, clear} = console; clear()
+const model = {};
+let elem
 
-const model = {}, runtime = {}
-
-function process () {
+async function process () {
   let hash, data
   hash = window.location.hash.trim().slice(1)
-  if (!hash) return error('FIXME empty hash')
+  if (!hash) return error('empty data fragment')
   if (hash.match(/^[a-z]*$/i)) return setHash({t: hash})
+  if (!hash.match(/^0=/i)) return setHash({s: hash})
   data = decode(hash.slice(2))
-  if (data == null) return error('FIXME invalid hash')
+  if (data == null) return error('invalid data fragment')
   if (data.t) {
-    if (!runtime.elem || model.t != data.t) {
-      runtime.elem = document.createElement(model.t = data.t)
-      runtime.elem.oninput = oninput;
+    if (!elem || model.t != data.t) {
+      elem = document.createElement(model.t = data.t)
+      elem.oninput = oninput;
       setValueOf(data)
-      mount(slot, runtime.elem)
+      mount(slot, elem)
       return
     } else if (!deepEqual(model.v, data.v)) {
       return setValueOf(data)
     } return
-  } else if (data.src) {
-
-  } error('FIXME no tag or src')
+  } else if (data.s) {
+    if (!elem || model.s != data.s) {
+      const modul = await import(model.s=data.s)
+      elem = new (modul.default)()
+      elem.oninput = oninput;
+      setValueOf(data)
+      mount(slot, elem)
+      return
+    } else if (!deepEqual(model.v, data.v)) {
+      return setValueOf(data)
+    } return
+  } error('no element defined')
 }
 
 let debounceOnInput
 function oninput () {
-  model.v = runtime.elem.value
-  inspect.innerHTML = JSON.stringify(model, null, '  ')
+  model.v = elem.value
+  inspect.innerHTML = '[draft] '+JSON.stringify(model, null, '  ')
   clearTimeout(debounceOnInput)
   debounceOnInput = setTimeout(()=> {
     setHash(model)
   }, 666)
 }
 function setHash(data) {
-  info('sa-sethash', data)
+  inspect.innerHTML = '[synced] ' +JSON.stringify(data, null, '  ')
   window.location.hash = '0='+encode(data)
 }
 function setValueOf(data) {
   if(data.v==undefined) {
     delete model.v
-    runtime.elem.value = runtime.elem.defaultValue
+    elem.value = elem.defaultValue
   } else {
-    runtime.elem.value = model.v = data.v
-  } inspect.innerHTML = JSON.stringify(data, null, '  ')
+    elem.value = model.v = data.v
+  } inspect.innerHTML = '[synced] ' +JSON.stringify(data, null, '  ')
 }
 function deepEqual(a, b) {
   return JSON.stringify(a)==JSON.stringify(b)
@@ -53,7 +62,9 @@ function deepEqual(a, b) {
 function mount(tar, elem) {
   tar.firstChild ? tar.replaceChild(elem, tar.firstChild) : tar.appendChild(elem)
 }
-
+function error(msg) {
+  inspect.innerHTML = '<span style="color: red">'+msg+'</span>'
+}
 window.onload = ()=> {
   document.body.innerHTML = '<div id="slot"></div><pre id="inspect"></pre>'
   process()
