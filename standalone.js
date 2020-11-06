@@ -5,7 +5,7 @@ const {log} = console
 let state = {}, debounce
 function oninput ({target}) {
   const {value} = target
-  insp.innerHTML = JSON.stringify(value, null, '  ') 
+  insp.innerHTML = JSON.stringify(value, null, '  ')
   clearTimeout(debounce)
   debounce = setTimeout( () => {
     window.location.hash = `${state.name}<${encode(value)}`
@@ -16,6 +16,7 @@ async function process() { // #[cmd:]element?data
   let fragment = window.location.hash.slice(1)
   let [name, value] = decodeURIComponent(fragment).split('<', 2)
   name = name.trim().toLowerCase()
+  if (name.length<1) return
   value = decode(value) ?? undefined  // null turns into undefined
   // log('process', {name, value})
   if (state.name != name) { // init new component
