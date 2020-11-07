@@ -1,12 +1,14 @@
 import {encode, decode} from '/vendor/lzstring.js'
 
 const model = {};
-let elem
-
+let elem, loaded = false
 async function process () {
   let hash, data
   hash = window.location.hash.trim().slice(1)
-  if (!hash) return error('empty data fragment')
+  if (!hash) return //error('empty data fragment')
+  !loaded && document.body.innerHTML = '<div id="slot"></div><pre id="inspect"></pre>'
+  loaded = true;
+  
   if (hash.match(/^[a-z]*$/i)) return setHash({t: hash})
   if (!hash.match(/^0=/i)) return setHash({s: hash})
   data = decode(hash.slice(2))
@@ -66,7 +68,6 @@ function error(msg) {
   inspect.innerHTML = '<span style="color: red">'+msg+'</span>'
 }
 window.onload = ()=> {
-  document.body.innerHTML = '<div id="slot"></div><pre id="inspect"></pre>'
   process()
 }
 
