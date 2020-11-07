@@ -8,22 +8,10 @@ async function process () {
   if (!hash) return //error('empty data fragment')
   !loaded && (document.body.innerHTML = '<div id="slot"></div><pre id="inspect"></pre>')
   loaded = true;
-
-  if (hash.match(/^[a-z]*$/i)) return setHash({t: hash})
   if (!hash.match(/^0=/i)) return setHash({s: hash})
   data = decode(hash.slice(2))
   if (data == null) return error('invalid data fragment')
-  if (data.t) {
-    if (!elem || model.t != data.t) {
-      elem = document.createElement(model.t = data.t)
-      elem.onchange = onchange;
-      setValueOf(data)
-      mount(slot, elem)
-      return
-    } else if (!deepEqual(model.v, data.v)) {
-      return setValueOf(data)
-    } return
-  } else if (data.s) {
+  if (data.s) {
     if (!elem || model.s != data.s) {
       const modul = await import(model.s=data.s)
       elem = new (modul.default)()
@@ -34,7 +22,7 @@ async function process () {
     } else if (!deepEqual(model.v, data.v)) {
       return setValueOf(data)
     } return
-  } error('no element defined')
+  } error('no src defined')
 }
 
 let debounceOnInput
