@@ -16,7 +16,7 @@ async function process () {
   if (data.t) {
     if (!elem || model.t != data.t) {
       elem = document.createElement(model.t = data.t)
-      elem.oninput = oninput;
+      elem.onchange = onchange;
       setValueOf(data)
       mount(slot, elem)
       return
@@ -27,7 +27,7 @@ async function process () {
     if (!elem || model.s != data.s) {
       const modul = await import(model.s=data.s)
       elem = new (modul.default)()
-      elem.oninput = oninput;
+      elem.onchange = onchange;
       setValueOf(data)
       mount(slot, elem)
       return
@@ -38,7 +38,7 @@ async function process () {
 }
 
 let debounceOnInput
-function oninput () {
+function onchange () {
   model.v = elem.value
   inspect.innerHTML = '[draft] '+JSON.stringify(model, null, '  ')
   clearTimeout(debounceOnInput)
