@@ -11,7 +11,12 @@
 ### Running
   * `https://miruku.li/#0=[lz-encoded-data]`
      * [demo hello world](https://miruku.li/#0=N4IgLiBcIJYHYAcCuEA0IBuUQAsCmANgQPYAEA7sQE4EAmIAvkA)
+         
 
+### Configuration
+  * cf. http://juicy.github.io/juicy-ace-editor/ or https://www.webcomponents.org/element/ace-custom-element
+    * `theme` and `mode` are passed as attributes
+    * content ist passed als child element
 ### FIXME Menu
   * configuration
   * qr-code
