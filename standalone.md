@@ -26,7 +26,7 @@ How deep does the rabbit 🐇 hole goes? Check on this [flems.io](https://flems.
 
 
 ### Configuration
-  * cf. http://juicy.github.io/juicy-ace-editor/ or https://www.webcomponents.org/element/ace-custom-element
+  * TODO:  http://juicy.github.io/juicy-ace-editor/ or https://www.webcomponents.org/element/ace-custom-element or https://github.com/socsieng/ace-custom-element/blob/main/src/AceEditor.ts
     * `theme` and `mode` are passed as attributes
     * content ist passed als child element
 ### FIXME Menu
