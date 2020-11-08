@@ -7,7 +7,7 @@ async function process () {
   let hash, data
   hash = window.location.hash.trim().slice(1)
   if (!hash) return //error('empty data fragment')
-  !loaded && (document.body.innerHTML = '<div role="host"></div><pre id="inspect"></pre>')
+  !loaded && (document.body.innerHTML = '<div role="host"></div><div id="menu"></div><pre id="inspect"></pre>')
   loaded = true;
   if (!hash.match(/^0=/i)) return setHash({s: hash})
   data = decode(hash.slice(2))
@@ -15,9 +15,11 @@ async function process () {
   if (data.s) {
     if (!elem || model.s != data.s) {
       const modul = await import(model.s=data.s)
+      menu.innerHTML = `<a href='/#${data.s}'>/#${data.s}</a> (rest)`
+      elem?.removeEventListener('*', listener)
       elem = new (modul.default)()
-
-      elem.onchange = onchange;
+      elem.onchange = listener;
+      elem.addEventListener('*', listener)
       setValueOf(data)
       mount(elem)
       return
@@ -27,12 +29,13 @@ async function process () {
   } error('no src defined')
 }
 
-let debounceOnInput
-function onchange () {
+let debounce
+function listener (event) {
+  console.log(event.type, event)
   model.v = elem.value
-  inspect.innerHTML = '[draft] '+JSON.stringify(model, null, '  ')
-  clearTimeout(debounceOnInput)
-  debounceOnInput = setTimeout(()=> {
+  inspect.innerHTML = `[draft]@${event.type} `+JSON.stringify(model, null, '  ')
+  clearTimeout(debounce)
+  debounce = setTimeout(()=> {
     setHash(model)
   }, 666)
 }
