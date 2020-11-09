@@ -24,7 +24,7 @@ const index = {
         sync = false
         dWrite(value)
       }
-    }, value || data),
+    }, value ?? data),
     m('pre', `hash[${sync?'in':'out of'} sync]: ${window.location.hash}`),
   )
 }
