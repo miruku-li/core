@@ -1,6 +1,7 @@
 import m from '/vndr/mithril.mod.js'
 import b from '/vendor/bss.js'
 import {encode,decode} from '/vendor/lzstring.js'
+import {debounce} from './utils.js'
 
 const {log} = console
 let value, data, sync
@@ -17,17 +18,14 @@ const index = {
       m.redraw()
     }
   }, view: () => m('div'+b`d flex; fd column`,
-    { run: log('render')},
     m('textarea'+b`h 10em`, {
       oninput: ({target}) => {
         value = target.value
         sync = false
-        writeDebounced(value)
+        dWrite(value)
       }
     }, value || data),
-    m('pre', 'location: ', window.location.href),
-    m('pre', 'hash: ', data),
-    m('pre', 'sync: ', sync?'in sync':'out of sync'),
+    m('pre', `hash[${sync?'in':'out of'} sync]: ${window.location.hash}`),
   )
 }
 
@@ -41,11 +39,4 @@ function read() {
 function write(data) {
   window.location.hash = encode(data)
 }
-
-let debounce
-function writeDebounced(data) {
-  clearTimeout(debounce)
-  debounce = setTimeout(() => {
-    write(data)
-  }, 666)
-}
+const dWrite = debounce(write, 666)
