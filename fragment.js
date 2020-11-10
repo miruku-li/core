@@ -1,16 +1,11 @@
-import {encode, decode} from '/vendor/lzstring.js'
+import {encode, decode} from '/vndr/lz-string.mod.js'
+import merge from '/vndr/mergerino.js'
 import { queryParam } from './utils.js'
 
 const
-  defaultDebounceTime = 666,
+  debounce = +queryParam(import.meta.url, 'debounce', 666),
   observers = [],
-  debug = !!queryParam(import.meta.url, 'debug'),
-  {log} = console,
-  {stringify} = JSON
-
-let
-  data = {},
-  currentHash = ''
+  state = { }
 
 self.onhashchange = () => {
   clearTimeout(debounceTimeout);
@@ -19,47 +14,29 @@ self.onhashchange = () => {
 
 read()
 
+
 export default {
 
-  // Returns an array representing all keys in this storage
-  keys () {
-    const keys = Object.keys(data)
-    debug && log(`%cfragment.keys() → [${keys}]`, "color: green;");
-    return Object.keys(keys)
+  get value () {
+    return state.value
   },
 
-  // When passed a key name, will return that key's value.
-  get (key) {
-    debug && console.log(`%cfragment.get(${key}) → ${stringify(data[key])}`, "color: green;");
-    return data[key]
+  set value (value) {
+    state.value = value
+    write()
   },
 
-  // When passed a key name and value, will add that key to the storage,
-  // or update that key's value if it already exists.
-  set (key, value, debounce = defaultDebounceTime) {
-    data[key] = value
-    debug && log(`%cfragment.set(${key}, ${stringify(value)}, ${debounce})`, "color: green;");
-    write(debounce)
+  clear() {
+      state.value = undefined;
+      write()
   },
 
-  // When passed a key name, will remove that key from the storage.
-  remove (key, debounce = defaultDebounceTime) {
-    delete data[key]
-    debug && log(`%cfragment.remove(${key}, ${debounce})`, "color: green;");
-    write(debounce)
+  update(patch) {
+    state.value = merge(state.value, patch)
+    write()
   },
 
-  // When invoked, will empty all keys out of the storage.
-  clear (debounce = defaultDebounceTime) {
-    data = {}
-    debug && log(`%cfragment.clear(${debounce})`, "color: green;");
-    write(debounce)
-  },
-
-  // register callback
-  // only user input will notify observers
   set on (callback) {
-    debug && log(`%cfragment.on = ${callback}`, "color: green;");
     if (typeof callback != 'function') return
     observers.push(callback)
   }
@@ -70,27 +47,27 @@ export default {
 
 let debounceTimeout;
 
-function write (debounce) {
+function write () {
   clearTimeout(debounceTimeout)
-  const hash = '0='+encode(data);
-  if (currentHash==hash) return;
-  debug && console.log(`%cfragment>write fragment update debounced by ${debounce}ms`, "color: blue;");
-  currentHash = hash;
+  const h = '0='+encode(state.value);
+  if (state.hash == h) return;
+  state.hash = h;
   debounceTimeout = setTimeout( () => {
-    self.location.hash = currentHash
-    debug && console.log(`%cfragment>write fragment updated`, "color: blue;");
+    self.location.hash = state.hash
   }, debounce)
 }
 
 function read () {
-  let hash = window.location.hash.slice(1);
-  if (!hash.startsWith('0=')) {
-    data = {};
+
+  let h = window.location.hash.slice(1);
+  if (!h.startsWith('0=')) {
+    delete state.value
     return;
-  }
-  if (hash.startsWith('0=') && hash != currentHash ) {
-      currentHash = hash
-      data = decode(hash.slice(2)) || {}
+  } // console.log('read...', h, state.hash)
+  if (h.startsWith('0=') && h != state.hash ) {
+      state.hash = h
+      state.value = decode(h.slice(2)) || {}
+      console.log('>', state)
       observers.forEach(o => o())
   }
 }
