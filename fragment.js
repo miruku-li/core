@@ -3,9 +3,12 @@ import merge from '/vndr/mergerino.js'
 import { queryParam } from './utils.js'
 
 const
-  debounce = +queryParam(import.meta.url, 'debounce', 666),
+  //debounce = +queryParam(import.meta.url, 'debounce', 666),
+  debounce = 666,
   observers = [],
   state = { }
+
+let debounceTimeout
 
 self.onhashchange = () => {
   clearTimeout(debounceTimeout);
@@ -15,7 +18,11 @@ self.onhashchange = () => {
 read()
 
 
-export default {
+const fragment = {
+
+  set debounce(value) {
+    debounce = Math.max(0, ~~Number(value))
+  },
 
   get value () {
     return state.value
@@ -32,7 +39,14 @@ export default {
   },
 
   update(patch) {
+    const type = typeof patch
+    //console.log(patch, type)
+    if (type!='object' && type!='function' && patch!==null) {
+      //console.log('sc')
+      return fragment.value = patch
+    } //console.log('<', patch)
     state.value = merge(state.value, patch)
+    //console.log('>', state.value)
     write()
   },
 
@@ -42,10 +56,10 @@ export default {
   }
 }
 
+export default fragment
 
 // helpers ----------------------------------------------------------------------
 
-let debounceTimeout;
 
 function write () {
   clearTimeout(debounceTimeout)
@@ -66,8 +80,8 @@ function read () {
   } // console.log('read...', h, state.hash)
   if (h.startsWith('0=') && h != state.hash ) {
       state.hash = h
-      state.value = decode(h.slice(2)) || {}
-      console.log('>', state)
+      state.value = decode(h.slice(2))
+      //console.log('>', state)
       observers.forEach(o => o())
   }
 }
