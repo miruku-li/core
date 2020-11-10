@@ -1,6 +1,6 @@
 import m from '/vndr/mithril.mod.js'
 import b from '/vendor/bss.js'
-import {encode,decode} from '/vendor/lzstring.js'
+import {encode, decode} from '/vendor/lzstring.js'
 import {debounce} from './utils.js'
 
 const {log} = console

@@ -11,7 +11,10 @@ const dispatch = (target, type, message) =>
 const queryParam = (url, param, defaultValue) => {
   url = new URL(url)
   let searchParams = new URLSearchParams(url.search)
-  return searchParams.get(param) ?? defaultValue
+  if (searchParams.has(param)) {
+    return searchParams.get(param) !== '' ? searchParams.get(param) : true
+  }
+  return defaultValue
 }
 
 export {debounce, dispatch, queryParam}

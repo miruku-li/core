@@ -1,0 +1,35 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type='module'>
+import fs from "./fragment.js?debug"
+
+const {assert, log} = console,
+  {stringify} = JSON,
+  de = (a,b) => stringify(a)==stringify(b)
+
+log('start')
+log(fs.keys())
+
+fs.clear()
+assert(de(fs.keys(), []), 0)
+
+fs.set('n', 1)
+assert(fs.get('n')==1, 1)
+
+fs.set('b', true)
+assert(fs.get('b')==true, 2)
+
+fs.remove('b')
+assert(fs.get('b')==undefined, 3)
+
+const arr = [12,32,4,2,2,1,2,"12313"];
+fs.set('a', arr)
+assert(de(fs.get('a'), arr), 4)
+
+fs.on = () => {
+  log('change')
+}
+
+
+</script>
+<pre>open dev tools > console</pre>
