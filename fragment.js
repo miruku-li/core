@@ -1,87 +1,66 @@
 import {encode, decode} from '/vndr/lz-string.mod.js'
 import merge from '/vndr/mergerino.js'
+import xpath from '/vndr/xpath.mod.js'
 import { queryParam } from './utils.js'
 
-const
-  //debounce = +queryParam(import.meta.url, 'debounce', 666),
-  debounce = 666,
-  observers = [],
-  state = { }
+const observers = [], defaultDebounce = 666
 
-let debounceTimeout
+let data, hash, timeout
 
-self.onhashchange = () => {
-  clearTimeout(debounceTimeout);
-  read()
-}
+self.onhashchange = load
 
-read()
+load()
 
+// -- api -------------------------------------------------------------------
 
 const fragment = {
 
-  set debounce(value) {
-    debounce = Math.max(0, ~~Number(value))
+  get () {
+    return data
   },
 
-  get value () {
-    return state.value
+  post (payload, debounce) {
+    data = payload
+    save(debounce)
   },
 
-  set value (value) {
-    state.value = value
-    write()
+  clear(debounce) {
+      data = undefined
+      save(debounce)
   },
 
-  clear() {
-      state.value = undefined;
-      write()
-  },
-
-  update(patch) {
-    const type = typeof patch
-    //console.log(patch, type)
+  put(payload, debounce) {
+    const type = typeof payload
     if (type!='object' && type!='function' && patch!==null) {
-      //console.log('sc')
-      return fragment.value = patch
-    } //console.log('<', patch)
-    state.value = merge(state.value, patch)
-    //console.log('>', state.value)
-    write()
+      return fragment.post(payload, debounce)
+    }
+    data = merge(data, payload)
+    save(debounce)
   },
 
   set on (callback) {
     if (typeof callback != 'function') return
     observers.push(callback)
   }
+
 }
 
 export default fragment
 
-// helpers ----------------------------------------------------------------------
+// -- helpers ------------------------------------------------------------------
 
-
-function write () {
-  clearTimeout(debounceTimeout)
-  const h = '0='+encode(state.value);
-  if (state.hash == h) return;
-  state.hash = h;
-  debounceTimeout = setTimeout( () => {
-    self.location.hash = state.hash
-  }, debounce)
+function save (debounce = defaultDebounce) {
+  clearTimeout(timeout)
+  hash = '#0='+encode(data);
+  if (self.location.hash == hash) { return }
+  timeout = setTimeout( () => { self.location.hash = hash }, debounce)
 }
 
-function read () {
-
-  let h = window.location.hash.slice(1);
-  if (!h.startsWith('0=')) {
-    delete state.value
-    return;
-  } // console.log('read...', h, state.hash)
-  if (h.startsWith('0=') && h != state.hash ) {
-      state.hash = h
-      state.value = decode(h.slice(2))
-      //console.log('>', state)
+function load () {
+  clearTimeout(timeout)
+  if (self.location.hash != hash) {
+      hash = self.location.hash
+      data = decode(hash.slice(3)) // #0=[lz-encoded data]
       observers.forEach(o => o())
   }
 }
