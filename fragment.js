@@ -1,6 +1,5 @@
 import {encode, decode} from '/vndr/lz-string.mod.js'
 import merge from '/vndr/mergerino.js'
-import xpath from '/vndr/xpath.mod.js'
 import { queryParam } from './utils.js'
 
 const observers = [], defaultDebounce = 666
@@ -15,7 +14,7 @@ load()
 
 const fragment = {
 
-  get () {
+  get () { // FIXME add xpath query
     return data
   },
 
